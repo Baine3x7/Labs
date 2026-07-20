@@ -86,28 +86,34 @@ ssh Administrator@home.lan
 
 # Configuration similaire sur les pcs : 
 scp `
->> "C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1"`
->> baine_vm@192.168.0.180:/D:/Temp/
+"C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1"`
+baine_vm@192.168.0.180:/D:/Temp/
 
- cd d:/Temp/
- powershell.exe -ExecutionPolicy Bypass ./ConfigPosteTravail.ps1
+D:/Temp/
+powershell.exe -ExecutionPolicy Bypass ./ConfigPosteTravail.ps1
 
  # Installation des utilisateurs et des groupes: 
 scp `
->> "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.1 Script + CS.ps1"
- "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.2 utilisateurs.csv" `
->> baine_vm@192.168.0.180:/D:/Temp/
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.1_Script_+_CS.ps1" `
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.2_utilisateurs.csv" `
+    baine_vm@192.168.0.180:/D:/Temp/
 
- cd d:/Temp/
- powershell.exe -ExecutionPolicy Bypass ./1.4.1 Script + CS.ps1
+ D:/Temp/
+ powershell.exe -ExecutionPolicy Bypass ./1.4.1_Script_+_CS.ps1
 
  # Sur le pc de travail en Powershell (Importe les fichiers sur la machine Hote)
 scp `
+    "C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\0.11.LABSP_Create.ps1" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\0.12.Create_VM.csv" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\0.21.LABSP_Config.ps1" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\0.22.Config_VM.csv" `
     baine_vm@192.168.0.180:/C:/Users/baine_vm/Desktop/Temp/
+# Powershell sur le pc de travail vers le pc hôte des VMs en ssh
+C:/Users/baine_vm/Desktop/Temp/
+powershell.exe -ExecutionPolicy Bypass ./ConfigPosteTravail.ps1
+powershell.exe -ExecutionPolicy Bypass ./0.11.LABSP_Create.ps1
+powershell.exe -ExecutionPolicy Bypass ./0.21.LABSP_Config.ps1
 
 # Lancer les scripts en SSH depuis le pc de travail
 # Importation de tous les scripts sur la VM pour les utiliser en SSH
@@ -116,5 +122,20 @@ scp `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.1_Create_Users.ps1" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.2_utilisateurs.csv" `
     Administrator@192.168.0.185:/C:/Users/Administrator/Desktop/Temp/
+# Powershell sur le pc de travail vers la VM en ssh
+C:/Users/Administrator/Desktop/Temp/
+powershell.exe -ExecutionPolicy Bypass ./ConfigPosteTravail.ps1
+powershell.exe -ExecutionPolicy Bypass ./1.4.1_Create_Users.ps1
 
-    
+# Avec cette commande Create_Users, le compte Administrateur devient secondaire.
+# Il faut absolument créer un compte utilisateur pour pouvoir se connecter à la VM en administrateur. Le compte "Baine Tech" devient le compte principal. Il faut donc se connecter avec ce compte pour pouvoir administrer la VM. 
+# Le compte Administrateur est toujours présent mais il est secondaire.
+
+# Pour desactiver le compte Administrateur, il faut se connecter avec le compte "Baine Tech" et exécuter la commande suivante en PowerShell :
+Enable-ADAccount -Identity "Administrator" # Pour réactiver le compte Administrateur
+Disable-ADAccount -Identity "Administrator" # Pour Desactiver le compte Administrateur
+
+# Importation de tous les scripts sur la VM pour les utiliser en SSH
+scp `
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1. Utilisateurs, Groupes, Partage de fichiers (Active Directory).ps1" `
+    tbaine@192.168.0.185:/C:/Users/tbaine/Desktop/Temp/

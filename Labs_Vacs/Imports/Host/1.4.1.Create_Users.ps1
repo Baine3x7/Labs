@@ -7,16 +7,24 @@ Import-Module ActiveDirectory
 
 # --- Paramètres à adapter ---
 
-# Création de l'OU si elle n'existe pas déjà (évite l'erreur au 2e lancement)
-if (-not (Get-ADOrganizationalUnit -Filter "Name -eq 'Utilisateurs'" -SearchBase "DC=home,DC=lan" -ErrorAction SilentlyContinue)) {
-    New-ADOrganizationalUnit -Name "Utilisateurs" -Path "DC=home,DC=lan"
-    Write-Host "OU 'Utilisateurs' créée." -ForegroundColor Yellow
+# Création des OU si elles n'existent pas déjà (évite l'erreur au 2e lancement)
+# Noms alignés sur le script principal (1.1) : OU_Users et OU_Groups
+if (-not (Get-ADOrganizationalUnit -Filter "Name -eq 'OU_Users'" -SearchBase "DC=home,DC=lan" -ErrorAction SilentlyContinue)) {
+    New-ADOrganizationalUnit -Name "OU_Users" -Path "DC=home,DC=lan"
+    Write-Host "OU 'OU_Users' créée." -ForegroundColor Yellow
+}
+if (-not (Get-ADOrganizationalUnit -Filter "Name -eq 'OU_Groups'" -SearchBase "DC=home,DC=lan" -ErrorAction SilentlyContinue)) {
+    New-ADOrganizationalUnit -Name "OU_Groups" -Path "DC=home,DC=lan"
+    Write-Host "OU 'OU_Groups' créée." -ForegroundColor Yellow
 }
 
-$OU_Cible         = "OU=Utilisateurs,DC=home,DC=lan"
+$OU_Cible         = "OU=OU_Users,DC=home,DC=lan"
+$OU_GroupesCible  = "OU=OU_Groups,DC=home,DC=lan"
 $Domaine          = "home.lan"
 $MotDePasseDefaut = 'Pa$$w0rd'   # guillemets simples : le $ n'est pas interprété
 $CheminRecap      = ".\recap_comptes_crees.csv"
+$PrefixeGroupe    = "GS_"        # convention du script principal : GS_Dir, GS_Tech, GS_HR
+$GroupesSansPrefixe = @("Domain Admins")  # groupes intégrés à ne pas préfixer
 
 # Détection automatique du fichier CSV (peu importe son nom exact, tant qu'il contient "utilisateurs")
 $FichierCSV = Get-ChildItem -Path "." -Filter "*utilisateurs*.csv" | Select-Object -First 1
@@ -109,19 +117,31 @@ foreach ($u in $Utilisateurs) {
 
     foreach ($NomGroupe in $Groupes) {
 
-        $Groupe = Get-ADGroup -Filter "Name -eq '$NomGroupe'" -ErrorAction SilentlyContinue
+        # Détermine le nom réel du groupe à rechercher/créer :
+        # - "Domain Admins" et autres groupes intégrés : utilisés tels quels
+        # - Les autres ("Tech", "Dir", "HR"...) : préfixés en "GS_Tech", "GS_Dir", "GS_HR"
+        #   pour rejoindre les groupes déjà créés par le script principal (1.3),
+        #   plutôt que de créer des groupes en double sans préfixe.
+        if ($GroupesSansPrefixe -contains $NomGroupe) {
+            $NomGroupeReel = $NomGroupe
+        }
+        else {
+            $NomGroupeReel = "$PrefixeGroupe$NomGroupe"
+        }
+
+        $Groupe = Get-ADGroup -Filter "Name -eq '$NomGroupeReel'" -ErrorAction SilentlyContinue
 
         if ($Groupe) {
             Add-ADGroupMember -Identity $Groupe -Members $SamAccountName
-            Write-Host "  -> Ajouté au groupe '$NomGroupe'" -ForegroundColor Cyan
+            Write-Host "  -> Ajouté au groupe '$NomGroupeReel'" -ForegroundColor Cyan
         }
         else {
-            Write-Warning "  -> Groupe '$NomGroupe' introuvable, création automatique..."
-            New-ADGroup -Name $NomGroupe -GroupScope Global -GroupCategory Security -Path $OU_Cible
-            Add-ADGroupMember -Identity $NomGroupe -Members $SamAccountName
+            Write-Warning "  -> Groupe '$NomGroupeReel' introuvable, création automatique dans OU_Groups..."
+            New-ADGroup -Name $NomGroupeReel -GroupScope Global -GroupCategory Security -Path $OU_GroupesCible
+            Add-ADGroupMember -Identity $NomGroupeReel -Members $SamAccountName
             Write-Host "  -> Groupe créé et utilisateur ajouté" -ForegroundColor Cyan
         }
-        $GroupesReussis += $NomGroupe
+        $GroupesReussis += $NomGroupeReel
     }
 
     # Ajout au récapitulatif
@@ -142,22 +162,9 @@ if ($Recapitulatif.Count -gt 0) {
 
 Write-Host "Import terminé." -ForegroundColor Yellow
 
-# Vérfication :
+# Vérification :
 # Get-ADUser -Filter *
 # Get-ADUser -Filter * -Properties Department | Out-GridView
-
-# Ligne 16 — $SeparateurGroupes = ";"
-# C'est le séparateur utilisé à l'intérieur d'une seule cellule, dans la colonne Service, pour distinguer plusieurs groupes entre eux.
-# Exemple : dans "Domain Admins; Tech; Dir", ce séparateur découpe cette chaîne en trois groupes : Domain Admins, Tech, Dir.
-# → À changer en ";" puisque c'est ce caractère qui sépare tes groupes dans le fichier.
-# Ligne 32 — Import-Csv -Path $CheminCSV -Delimiter ","
-# C'est le séparateur utilisé entre les colonnes du fichier CSV entier, pour distinguer Nom, Prenom et Service les uns des autres.
-# Exemple : dans Baine,Tech,"Domain Admins; Tech; Dir", ce délimiteur découpe la ligne en trois colonnes.
-# → À changer en "," puisque ton fichier sépare ses colonnes avec des virgules.
-# En résumé
-# Ligne	Rôle	Valeur actuelle	Valeur correcte
-# 16	Sépare les groupes dans la colonne Service	,	;
-# 32	Sépare les colonnes entre elles	;	,
-# Les deux valeurs sont simplement inversées par rapport à ce qu'il faut. Une fois corrigées, le script lira correctement Nom, Prenom, Service, puis découpera "Domain Admins; Tech; Dir" en trois groupes distincts.
+# Get-ADGroupMember -Identity "GS_Dir"
 
 

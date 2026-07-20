@@ -1,0 +1,260 @@
+=====================================================
+RÉCAPITULATIF - ERREURS RENCONTRÉES ET QUESTIONS POSÉES
+Script : 1.4.1_Create_Users.ps1 (Import CSV -> création comptes AD)
+=====================================================
+
+--------------------------------------------------
+1. ERREUR : MissingPropertyName
+--------------------------------------------------
+Message :
+At line:1 char:5
++ 1.4.1_Create_Users.ps1
++     ~
+Missing property name after reference operator.
+FullyQualifiedErrorId : MissingPropertyName
+
+Cause :
+Le script a été lancé sans préfixe ".\" devant son nom. PowerShell
+n'exécute jamais un script du dossier courant sans ce préfixe
+(contrairement à cmd.exe), et interprète le nom tapé comme une
+expression (le "1.4.1" est lu comme un nombre suivi d'un point,
+provoquant l'erreur).
+
+Solution :
+.\1.4.1_Create_Users.ps1
+
+--------------------------------------------------
+2. ERREUR : AmpersandNotAllowed
+--------------------------------------------------
+Message :
+powershell.exe -ExecutionPolicy bypass & ".\1.4.1_Create_Users.ps1"
+The ampersand (&) character is not allowed. The & operator is
+reserved for future use...
+
+Cause :
+L'opérateur "&" doit être seul en tête de commande, pas combiné
+après d'autres arguments.
+
+Solution :
+powershell.exe -ExecutionPolicy bypass ".\1.4.1_Create_Users.ps1"
+(pas besoin de "&" ici, le script est déjà passé en argument)
+
+--------------------------------------------------
+3. ERREUR : FileNotFoundException (Import-Csv)
+--------------------------------------------------
+Message :
+Import-Csv : Could not find file
+'C:\Users\Administrator\Desktop\Temp\4.2_utilisateurs.csv'.
+
+Cause :
+Le chemin défini dans $CheminCSV ne correspondait pas au nom réel
+du fichier présent dans le dossier.
+
+Solution :
+Vérification avec :
+Get-ChildItem C:\Users\Administrator\Desktop\Temp\*.csv
+puis correction du chemin, avant remplacement par une détection
+dynamique du fichier (voir Q17).
+
+--------------------------------------------------
+4. ERREUR : ADIdentityNotFoundException (Get-ADUser / OU)
+--------------------------------------------------
+Message :
+Get-ADUser : Directory object not found
+
+Cause :
+$OU_Cible = "OU=Utilisateurs,DC=home,DC=lan" ne correspondait à
+aucune OU existante. Seule l'OU par défaut "Domain Controllers"
+existait.
+
+Solution :
+Création de l'OU manquante :
+New-ADOrganizationalUnit -Name "Utilisateurs" -Path "DC=home,DC=lan"
+
+Vérifications utiles :
+Get-ADDomain | Select-Object DistinguishedName
+Get-ADOrganizationalUnit -Filter * | Select-Object Name, DistinguishedName
+
+--------------------------------------------------
+5. ERREUR : InvokeMethodOnNull ($u.Nom.Trim())
+--------------------------------------------------
+Message :
+You cannot call a method on a null-valued expression.
+At ...1.4.1_Create_Users.ps1:38 char:5
++     $Nom     = $u.Nom.Trim()
+
+Cause :
+Mauvaise correspondance entre le délimiteur utilisé dans
+Import-Csv (";") et le délimiteur réel du fichier CSV (",").
+Le CSV entier était donc lu comme une seule colonne, et la
+propriété "Nom" n'existait pas sur l'objet importé.
+
+Vérification :
+Get-Content .\1.4.2_utilisateurs.csv -TotalCount 3
+-> a révélé un fichier au format :
+Nom,Prenom,Service
+Baine,Tech,"Domain Admins; Tech; Dir"
+
+Solution :
+Inversion des deux séparateurs dans le script :
+- $SeparateurGroupes  = ";"   (séparateur DANS la colonne Service)
+- Import-Csv -Delimiter ","   (séparateur ENTRE les colonnes)
+
+Remarque annexe :
+Problème d'encodage observé en parallèle (accents affichés "Ã©"
+au lieu de "é") dans les messages Write-Warning / Write-Host.
+
+=====================================================
+QUESTIONS POSÉES ET RÉPONSES
+=====================================================
+
+Q1. Comment importer un CSV (Nom;Prenom;Service) et créer
+    automatiquement les comptes + les ajouter au bon groupe
+    selon le service ?
+R1. Script PowerShell utilisant Import-Csv avec délimiteur ";",
+    puis New-ADUser pour créer chaque compte (login = initiale
+    prénom + nom), et Get-ADGroup / Add-ADGroupMember pour
+    l'ajout au groupe correspondant au service (avec création
+    automatique du groupe s'il n'existait pas).
+
+Q2. Comment permettre qu'un utilisateur appartienne à
+    plusieurs groupes ?
+R2. Découpage de la colonne Service avec .Split() sur un
+    séparateur dédié ($SeparateurGroupes), puis boucle
+    foreach sur chaque groupe obtenu pour l'ajout individuel
+    de l'utilisateur.
+
+Q3. Fusion de la version personnalisée du script (paramètres
+    home.lan / Pa$$w0rd) avec la version multi-groupes.
+R3. Réinjection des valeurs personnalisées (OU, domaine, mot
+    de passe) dans la version multi-groupes, avec remarque sur
+    le "$" dans les chaînes entre guillemets doubles (nécessite
+    des guillemets simples pour être pris littéralement).
+
+Q4. Test de robustesse du script sur des cas limites
+    (service vide, doublons, espaces mal placés, collisions
+    de login).
+R4. Identification de 2 trous : service vide (compte créé sans
+    groupe, sans avertissement) et collision de login (deux
+    utilisateurs différents générant le même SamAccountName).
+    Ajout d'un contrôle Nom/Prénom vide, d'un avertissement
+    explicite si aucun service, et d'une gestion de collision
+    par suffixe numérique (jmartin, jmartin2, ...).
+
+Q5. Ajout de la translittération des accents dans les logins
+    + export CSV récapitulatif des comptes créés.
+R5. Ajout d'une fonction Remove-Diacritics basée sur la
+    normalisation Unicode (FormD) pour retirer les marques
+    diacritiques. Ajout d'un tableau $Recapitulatif rempli à
+    chaque création réussie, exporté en CSV en fin de script
+    (nom, login, UPN, mot de passe, groupes).
+
+Q6. Quelle est la différence entre ";" et "," dans un fichier
+    CSV ?
+R6. "," est le délimiteur standard international (Comma-
+    Separated Values). ";" est la convention européenne/
+    francophone, utilisée car la virgule sert déjà de
+    séparateur décimal dans ces régions (ex: 3,14). Un CSV
+    exporté depuis un Excel français utilise presque toujours
+    ";".
+
+Q7. Peut-on inverser les rôles : "," comme délimiteur de
+    colonnes et ";" comme séparateur de groupes ?
+R7. Oui, en inversant simplement Import-Csv -Delimiter "," et
+    $SeparateurGroupes = ";". Le reste du script fonctionne
+    sans autre modification car tout est piloté par la
+    variable $SeparateurGroupes.
+
+Q8. Demande d'un logiciel pour gérer les fenêtres SSH
+    (clarifié ensuite : besoin de mieux différencier 3
+    fenêtres SSH ouvertes, pas besoin d'un nouveau logiciel).
+R8. Solutions proposées selon le client utilisé : renommage de
+    fenêtre PuTTY (Window title ou echo -ne "\033]0;NOM\007"),
+    onglets nommés/colorés dans Windows Terminal, fichier
+    ~/.ssh/config avec alias d'hôtes (ssh dc01, ssh web01),
+    ou multiplexeur tmux pour une gestion avancée.
+
+Q9. Explication de l'erreur "Missing property name after
+    reference operator" lors du lancement direct du script.
+R9. Voir Erreur n°1 ci-dessus : ajout du préfixe ".\" devant
+    le nom du script.
+
+Q10. Explication de l'erreur liée à l'opérateur "&".
+R10. Voir Erreur n°2 ci-dessus : "&" doit être seul en tête de
+     commande ; utilisation directe de powershell.exe avec le
+     chemin du script en argument à la place.
+
+Q11. Résolution de l'erreur Import-Csv "Could not find file".
+R11. Voir Erreur n°3 ci-dessus : vérification du nom réel du
+     fichier avec Get-ChildItem, correction du chemin dans
+     $CheminCSV.
+
+Q12. Résolution de l'erreur Get-ADUser "Directory object not
+     found" (OU manquante).
+R12. Voir Erreur n°4 ci-dessus : création de l'OU manquante
+     avec New-ADOrganizationalUnit, vérification de la
+     structure AD réelle avec Get-ADDomain et
+     Get-ADOrganizationalUnit.
+
+Q13. Pourquoi la ligne $CheminRecap = ".\recap_comptes_crees.csv"
+     n'affiche rien dans la console ?
+R13. Comportement normal : une assignation de variable ne
+     produit jamais d'affichage. Pour vérifier son contenu, il
+     faut taper le nom de la variable seul sur la ligne
+     suivante ($CheminRecap).
+
+Q14. Résolution de l'erreur "cannot call a method on a
+     null-valued expression" ($u.Nom.Trim()).
+R14. Voir Erreur n°5 ci-dessus : inversion des délimiteurs
+     Import-Csv et $SeparateurGroupes suite à la vérification
+     du format réel du fichier avec Get-Content.
+
+Q15. Différence exacte entre le paramètre ligne 16
+     ($SeparateurGroupes) et ligne 32 (Import-Csv -Delimiter).
+R15. Ligne 16 sépare les groupes À L'INTÉRIEUR de la colonne
+     Service (ex: "Domain Admins; Tech; Dir" -> 3 groupes).
+     Ligne 32 sépare les colonnes ENTRE ELLES dans le fichier
+     CSV entier (Nom, Prenom, Service).
+
+Q16. Commande PowerShell pour lister tous les utilisateurs AD.
+R16. Get-ADUser -Filter *
+     Variantes proposées : filtrage par OU (-SearchBase),
+     affichage du Department, format tableau (Format-Table),
+     ou interface graphique (Out-GridView).
+
+Q17. Modification du script pour détecter automatiquement le
+     fichier CSV par mot-clé ("utilisateurs") plutôt que par
+     nom exact.
+R17. Utilisation de Get-ChildItem -Filter "*utilisateurs*.csv"
+     avec Select-Object -First 1, et contrôle d'erreur si aucun
+     fichier trouvé (Write-Error + exit).
+
+Q18. Rendre la création de l'OU idempotente (ne plante pas si
+     l'OU existe déjà) + correction du chemin $CheminRecap.
+R18. Ajout d'une condition if (-not (Get-ADOrganizationalUnit
+     ...)) avant New-ADOrganizationalUnit. Changement de
+     $CheminRecap de "C:\Import\..." (dossier inexistant) vers
+     ".\recap_comptes_crees.csv" (chemin relatif cohérent avec
+     $CheminCSV).
+
+Q19. Est-il possible qu'une fois le nouveau mot de passe
+     saisi par l'utilisateur, celui-ci n'expire jamais ?
+R19. Oui, via -PasswordNeverExpires $true. Incompatible avec
+     -ChangePasswordAtLogon $true dans la même commande
+     New-ADUser (erreur AD). Solution : garder
+     ChangePasswordAtLogon $true à la création, puis appliquer
+     Set-ADUser -Identity $SamAccountName -PasswordNeverExpires
+     $true juste après, dans le même bloc try.
+
+Q20. Le script crée-t-il un groupe automatiquement s'il
+     n'existe pas déjà ?
+R20. Oui, via le bloc if/else dans la boucle sur les groupes :
+     Get-ADGroup vérifie l'existence, sinon New-ADGroup crée un
+     groupe Global/Security dans la même OU que les
+     utilisateurs. Remarque : "Domain Admins" existe déjà par
+     défaut dans AD et confère des droits d'administration
+     complets du domaine — à surveiller si présent dans le CSV.
+
+=====================================================
+FIN DU RÉCAPITULATIF
+=====================================================
