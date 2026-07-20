@@ -1,0 +1,4 @@
+VMName,Gen,RAM,CPU,Switch,SizeMain,SizeSecond,os
+SRV-AD,2,8,2,LabHome,60,20,Server
+client,2,8,2,LabHome,60,20,client
+
