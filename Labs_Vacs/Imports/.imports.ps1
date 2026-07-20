@@ -4,6 +4,7 @@
 # VM WinServer2025 :    home\administrator  192.168.0.185   home.lan    Pa$$w0rd
 
 # Importation sur l'hôte du script de configuration de la VM WinServer2025
+
 scp `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\Imports\Client\ConfigLangueAffichage.ps1" `
     "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\Imports\Client\0.11.LABSP_Create.ps1" `
@@ -13,12 +14,17 @@ scp `
     baine_vm@192.168.0.180:/D:/Temp/
 
 
+
 # Importation sur le client (WinServer2025) du script de configuration des VMs
 scp `
-    "C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1" `
-    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.1_Create_Users.ps1" `
-    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\1.4.2_utilisateurs.csv" `
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\Imports\Host\1.4.1.Create_Users.ps1" `
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\Imports\Host\1.4.2_utilisateurs.csv" `
+    "C:\Users\Baine\SynologyDrive\GitHub\Labs\Labs_Vacs\Imports\Host\ConfigLangueAffichage.ps1" `
     Administrator@192.168.0.185:/C:/Users/Administrator/Desktop/Temp/
+
+cd Desktop/Temp/
+powershell.exe -ExecutionPolicy Bypass ./1.4.1.Create_Users.ps1
+powershell.exe -ExecutionPolicy Bypass ./ConfigLangueAffichage.ps1 -Mode Import
 
 
 

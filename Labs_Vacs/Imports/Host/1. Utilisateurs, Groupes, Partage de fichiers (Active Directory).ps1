@@ -20,20 +20,31 @@ New-ADUser -Name "Alice" -GivenName "Alice" -Surname "Neyer" -SamAccountName "na
 New-ADUser -Name "Bob" -GivenName "Bob" -Surname "Lenormand" -SamAccountName "lbob" -UserPrincipalName "bob@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
 New-ADUser -Name "Charlie" -GivenName "Charlie" -Surname "Brown" -SamAccountName "bcharlie" -UserPrincipalName "bcharlie@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
 New-ADUser -Name "David" -GivenName "David" -Surname "Lafarge" -SamAccountName "ldavid" -UserPrincipalName "david@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
+New-ADUser -Name "Yann" -GivenName "Yann" -Surname "Vanhemelryck" -SamAccountName "vyann" -UserPrincipalName "vyann@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
+New-ADUser -Name "Sebastien" -GivenName "Sebastien" -Surname "Sotiaux" -SamAccountName "ssebastien" -UserPrincipalName "ssebastien@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
+New-ADuser -Name "Jonathan" -GivenName "Jonathan" -Surname "Rippers" -SamAccountName "rjonathan" -UserPrincipalName "rjonathan@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
 
 ## 1.3.Créer les groupes et Ajouter les utilisateurs aux groupes
 New-ADGroup -Name "GS_Dir" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
 New-ADGroup -Name "GS_Tech" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
 New-ADGroup -Name "GS_HR" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
-Add-ADGroupMember -Identity "GS_Dir" -Members "Baine", "nalice"
-Add-ADGroupMember -Identity "GS_Tech" -Members "lbob", "bcharlie"
+Add-ADGroupMember -Identity "GS_Dir" -Members "vyann", "nalice"
+Add-ADGroupMember -Identity "GS_HR" -Members "ldavid"
+Add-ADGroupMember -Identity "GS_Tech" -Members "lbob", "bcharlie", "vyann", "ssebastien", "rjonathan", "Baine"
 Add-ADGroupMember -Identity "Domain Admins" -Members "Baine"
+
+Enable-ADAccount -Identity "Administrator" # Pour réactiver le compte Administrateur
+Disable-ADAccount -Identity "Administrator" # Pour Desactiver le compte Administrateur
 
 # Supprimer des utilisateurs et groupes pour réinitialiser l'environnement de test
 Remove-ADUser -Identity "nalice" -Confirm:$false
 Remove-ADUser -Identity "lbob" -Confirm:$false
 Remove-ADUser -Identity "bcharlie" -Confirm:$false
 Remove-ADUser -Identity "ldavid" -Confirm:$false
+Remove-ADUser -Identity "Baine" -Confirm:$false
+Remove-ADUser -Identity "vyann" -Confirm:$false
+Remove-ADUser -Identity "ssebastien" -Confirm:$false
+Remove-ADUser -Identity "rjonathan" -Confirm:$false
 Remove-ADGroup -Identity "GS_Dir" -Confirm:$false
 Remove-ADGroup -Identity "GS_Tech" -Confirm:$false
 Remove-ADGroup -Identity "GS_HR" -Confirm:$false
@@ -47,9 +58,9 @@ Get-ADUser -Identity "Baine" | Move-ADObject -TargetPath "OU=OU_Users,DC=home,DC
 # Vérification
 Get-ADUser -Identity "Baine" | Select-Object Name, DistinguishedName
 
-Name  DistinguishedName
-----  -----------------
-Baine CN=Baine,OU=OU_Users,DC=home,DC=lan
+# Name  DistinguishedName
+# ----  -----------------
+# Baine CN=Baine,OU=OU_Users,DC=home,DC=lan
 
 
 ## 1.4 Ecrire un script PowerShell pour créer les utilisateurs et les groupes à partir d'un fichier CSV
