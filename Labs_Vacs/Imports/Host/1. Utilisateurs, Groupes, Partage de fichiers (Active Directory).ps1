@@ -24,7 +24,7 @@ New-ADUser -Name "Yann" -GivenName "Yann" -Surname "Vanhemelryck" -SamAccountNam
 New-ADUser -Name "Sebastien" -GivenName "Sebastien" -Surname "Sotiaux" -SamAccountName "ssebastien" -UserPrincipalName "ssebastien@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
 New-ADuser -Name "Jonathan" -GivenName "Jonathan" -Surname "Rippers" -SamAccountName "rjonathan" -UserPrincipalName "rjonathan@home.lan" -Path "OU=OU_Users,DC=home,DC=lan" -Enabled $true -AccountPassword (ConvertTo-SecureString 'Pa$$w0rd' -AsPlainText -Force) -ChangePasswordAtLogon $true
 
-## 1.3.Créer les groupes et Ajouter les utilisateurs aux groupes
+## 1.2.1 Créer les groupes et Ajouter les utilisateurs aux groupes
 New-ADGroup -Name "GS_Dir" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
 New-ADGroup -Name "GS_Tech" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
 New-ADGroup -Name "GS_HR" -GroupScope Global -Path "OU=OU_Groups,DC=home,DC=lan"
@@ -36,7 +36,7 @@ Add-ADGroupMember -Identity "Domain Admins" -Members "Baine"
 Enable-ADAccount -Identity "Administrator" # Pour réactiver le compte Administrateur
 Disable-ADAccount -Identity "Administrator" # Pour Desactiver le compte Administrateur
 
-# Supprimer des utilisateurs et groupes pour réinitialiser l'environnement de test
+# 1.2.3 Supprimer des utilisateurs et groupes pour réinitialiser l'environnement de test
 Remove-ADUser -Identity "nalice" -Confirm:$false
 Remove-ADUser -Identity "lbob" -Confirm:$false
 Remove-ADUser -Identity "bcharlie" -Confirm:$false
@@ -63,12 +63,7 @@ Get-ADUser -Identity "Baine" | Select-Object Name, DistinguishedName
 # ----  -----------------
 # Baine CN=Baine,OU=OU_Users,DC=home,DC=lan
 
-
-## 1.4 Ecrire un script PowerShell pour créer les utilisateurs et les groupes à partir d'un fichier CSV
-powershell.exe -ExecutionPolicy bypass 1.4.1_Create_Users.ps1
-powershell.exe -ExecutionPolicy bypass 1.4.2_utilisateurs.csv
-
-## 1.5 Créer un partage de fichiers et configurer les permissions pour les groupes
+## 1.3 Créer un partage de fichiers et configurer les permissions pour les groupes
 # Pour cet exercice, on va créer un disque dur de 10 GB pour pas mélanger l'os et les fichiers partagés. On va créer un disque dur virtuel (VHDX) de 10 GB, le formater en NTFS, le monter sur le serveur et le partager avec les groupes GS_Dir et GS_Tech.
 # Ce disque sera le disque D:.
 # Dans un premier temps, créer l'arborescence suivante sur le disque D:
@@ -105,9 +100,9 @@ icacls "D:\Partage" /grant "GS_Tech:(OI)(CI)F" /inheritance:r
 icacls "D:\Partage"
 
 # 5. Vérifier les permissions sur les sous-dossiers sensibles par groupes
-(Get-Acl "D:\Partage\Tech").Access | Where-Object { $_.IdentityReference -like "*GS_Tech*" }
-(Get-Acl "D:\Partage\Dir").Access | Where-Object { $_.IdentityReference -like "*GS_Dir*" }
-(Get-Acl "D:\Partage\HR").Access | Where-Object { $_.IdentityReference -like "*GS_HR*" }
+(Get-Acl "D:\Partage\GS_Tech").Access | Where-Object { $_.IdentityReference -like "*GS_Tech*" }
+(Get-Acl "D:\Partage\GS_Dir").Access | Where-Object { $_.IdentityReference -like "*GS_Dir*" }
+(Get-Acl "D:\Partage\GS_HR").Access | Where-Object { $_.IdentityReference -like "*GS_HR*" }
 
 #Les commandes ne doivent rien retourner pour les groupes qui n'ont pas accès.
 
