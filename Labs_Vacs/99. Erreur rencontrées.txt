@@ -258,3 +258,63 @@ R20. Oui, via le bloc if/else dans la boucle sur les groupes :
 =====================================================
 FIN DU RÉCAPITULATIF
 =====================================================
+
+PS C:\Users\Administrator\Desktop\Temp> powershell.exe -ExecutionPolicy Bypass -File '.\1.8_Desactivation de compte.ps1'
+
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:71 char:5
++     }
++     ~
+Unexpected token '}' in expression or statement.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:78 char:98
++ ... sactivÃ© auto le $(Get-Date -Format 'yyyy-MM-dd') â€” inactif depuis  ...
++                                                           ~~~~~~~
+Unexpected token 'inactif' in expression or statement.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:104 char:16
++     Write-Log "Rapport exportÃ© : $FichierRapport"
++                ~~~~~~~
+Unexpected token 'Rapport' in expression or statement.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:110 char:33
++ Write-Log "=== Fin du script ==="
++                                 ~
+The string is missing the terminator: ".
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:74 char:17
++             try {
++                 ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:110 char:34
++ Write-Log "=== Fin du script ==="
++                                  ~
+The Try statement is missing its Catch or Finally block.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:73 char:92
++ ... houldProcess($Utilisateur.SamAccountName, "DÃ©sactiver le compte")) {
++                                                                         ~
+Missing closing '}' in statement block or type definition.
+At C:\Users\Administrator\Desktop\Temp\1.8_Desactivation de compte.ps1:72 char:10
++     else {
++          ~
+Missing closing '}' in statement block or type definition.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : UnexpectedToken
+
+
+Correction :
+$Contenu = Get-Content ".\1.8_Desactivation de compte.ps1" -Raw -Encoding UTF8
+Set-Content ".\1.8_Desactivation de compte.ps1" -Value $Contenu -Encoding UTF8
+
+Changer l'encodage du fichier
+
+PS C:\Users\Administrator\Desktop\Temp> powershell.exe -ExecutionPolicy Bypass "./1.8_Desactivation de compte.ps1"
+./1.8_Desactivation : The term './1.8_Desactivation' is not recognized as the name of a cmdlet, function, script file,
+or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and
+try again.
+At line:1 char:1
++ ./1.8_Desactivation de compte.ps1
++ ~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (./1.8_Desactivation:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+
+    Le fichier possède des espaces
+
+fix : (.ps1) Rename-Item ".\1.8_Desactivation de compte.ps1" ".\1.8_Desactivation_de_compte.ps1"
+
+

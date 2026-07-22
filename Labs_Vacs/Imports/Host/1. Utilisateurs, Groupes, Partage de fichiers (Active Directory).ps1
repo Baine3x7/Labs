@@ -41,7 +41,8 @@ Remove-ADUser -Identity "nalice" -Confirm:$false
 Remove-ADUser -Identity "lbob" -Confirm:$false
 Remove-ADUser -Identity "bcharlie" -Confirm:$false
 Remove-ADUser -Identity "ldavid" -Confirm:$false
-Remove-ADUser -Identity "Baine" -Confirm:$false
+Remove-ADUser -Identity "tbaine" -Confirm:$false
+Remove-ADUser -Identity "pbaine" -Confirm:$false
 Remove-ADUser -Identity "vyann" -Confirm:$false
 Remove-ADUser -Identity "ssebastien" -Confirm:$false
 Remove-ADUser -Identity "rjonathan" -Confirm:$false

@@ -116,10 +116,10 @@ Restart-Service DNS
 # Configuration similaire sur les pcs : 
 
 scp `
->> "C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1"`
->> baine_vm@192.168.0.180:/D:/Temp/
+"C:\Users\Baine\SynologyDrive\GitHub\Claude\ConfigPosteTravail.ps1"`
+baine_vm@192.168.0.180:/D:/Temp/
 
- cd d:/Temp/
+ Set-Location d:/Temp/
  powershell.exe -ExecutionPolicy Bypass ./ConfigPosteTravail.ps1
 
 

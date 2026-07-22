@@ -1,4 +1,4 @@
-$csv = Import-Csv ".\2.12.Create_VM.csv"
+$csv = Import-Csv ".\Create_VM.csv"
     
 ### Création du répertoire pour les VM
 Set-Location ..\
