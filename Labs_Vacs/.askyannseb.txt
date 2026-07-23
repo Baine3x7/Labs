@@ -1,0 +1,3 @@
+1. Est-ce qu'il faudrait, en prod, desactiver  le compte admin vu qu'on a un utilisateur disponible ?
+
+2. A quoi sert la zone de DNS inversé ? Pourquoi on ne peut pas utiliser l'ip normale du pc ?

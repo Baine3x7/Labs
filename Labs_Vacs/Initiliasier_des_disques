@@ -1,0 +1,116 @@
+# Création et gestion de disques - PowerShell
+
+## Initialisation d'un disque
+
+Lister les disques (repérer celui en `RAW`) :
+```powershell
+Get-Disk
+```
+
+Initialiser un disque brut :
+```powershell
+Initialize-Disk -Number 1 -PartitionStyle GPT
+```
+
+## Création et formatage de partition
+
+Créer une partition et la formater en une seule commande :
+```powershell
+New-Partition -DiskNumber 1 -UseMaximumSize -AssignDriveLetter | Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false
+```
+
+Créer une partition avec une lettre précise :
+```powershell
+New-Partition -DiskNumber 1 -UseMaximumSize -DriveLetter D
+```
+
+## Gestion des partitions existantes
+
+Lister les partitions d'un disque :
+```powershell
+Get-Partition -DiskNumber 1
+```
+
+Changer la lettre d'une partition (sans supprimer les données) :
+```powershell
+Set-Partition -DiskNumber 1 -PartitionNumber 2 -NewDriveLetter E
+```
+
+Supprimer une partition (⚠️ efface les données) :
+```powershell
+Remove-Partition -DiskNumber 1 -PartitionNumber 2 -Confirm:$false
+```
+
+Recréer une partition avec une nouvelle lettre après suppression :
+```powershell
+New-Partition -DiskNumber 1 -UseMaximumSize -DriveLetter E | Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false
+```
+
+## Formatage d'un volume
+
+Formater un volume identifié par sa lettre :
+```powershell
+Format-Volume -DriveLetter E -FileSystem NTFS -NewFileSystemLabel "WDS" -Confirm:$false
+```
+
+Formater via pipe depuis une partition :
+```powershell
+Get-Partition -DiskNumber 1 -PartitionNumber 2 | Format-Volume -FileSystem NTFS -NewFileSystemLabel "WDS" -Confirm:$false
+```
+
+## Mapper un lecteur réseau
+
+Mappage simple avec `New-PSDrive` :
+```powershell
+New-PSDrive -Name "S" -PSProvider FileSystem -Root "\\192.168.0.180\Share" -Persist
+```
+
+Mappage avec identifiants (variable) :
+```powershell
+$cred = Get-Credential
+New-PSDrive -Name "S" -PSProvider FileSystem -Root "\\192.168.0.180\Share" -Persist -Credential $cred
+```
+
+Mappage avec identifiants (inline) :
+```powershell
+New-PSDrive -Name "S" -PSProvider FileSystem -Root "\\192.168.0.180\Share" -Credential (Get-Credential)
+```
+> Note : sans `-Persist`, le mappage ne survit pas à un redémarrage, mais évite l'erreur "network resource type is not correct" rencontrée avec `-Persist` + `-Credential`.
+
+Alternative avec `net use` :
+```powershell
+net use S: \\192.168.0.180\Share /persistent:yes
+```
+
+Avec utilisateur précisé :
+```powershell
+net use S: \\192.168.0.180\Share /user:HOME\Baine /persistent:yes
+```
+
+## Dépannage lecteur réseau (erreur système 67 - "network name cannot be found")
+
+Tester la connectivité au serveur :
+```powershell
+Test-Connection 192.168.0.180
+```
+
+Vérifier que le partage existe côté serveur :
+```powershell
+Get-SmbShare
+```
+
+Lister les partages visibles depuis le client :
+```powershell
+net view \\192.168.0.180
+```
+
+Vérifier les règles de pare-feu SMB sur le serveur :
+```powershell
+Get-NetFirewallRule -DisplayGroup "File and Printer Sharing" | Select DisplayName, Enabled
+```
+
+Supprimer un lecteur mappé existant/fantôme avant de réessayer :
+```powershell
+Remove-PSDrive -Name S -Force
+net use S: /delete
+```

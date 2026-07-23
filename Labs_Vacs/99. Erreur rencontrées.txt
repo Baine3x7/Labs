@@ -185,3 +185,13 @@ Rename-Item ".\1.8_Desactivation de compte.ps1" ".\1.8_Desactivation_de_compte.p
 - **Un problème d'encodage peut se manifester comme des erreurs de syntaxe sans rapport apparent** — si les erreurs semblent incohérentes avec le code visible, vérifier l'encodage du fichier en premier.
 - **Éviter les espaces dans les noms de fichiers de script** — source classique d'erreurs `CommandNotFoundException` à l'exécution.
 - **`-PasswordNeverExpires` et `-ChangePasswordAtLogon` sont incompatibles ensemble à la création** — les appliquer en deux temps (création, puis `Set-ADUser`).
+
+## CSV et txt
+
+# 8.1 Exporter la liste complète des enregistrements d'une zone dans un texte avec Get-DnsServerResourceRecord.
+Get-DnsServerResourceRecord -ZoneName "home.lan" | Select-Object HostName, RecordType, RecordData | Out-File -FilePath ".\rapport_DNS_Records.txt"
+
+# 8.2 Exporter la liste complète des enregistrements d'une zone dans un CSV avec Get-DnsServerResourceRecord.
+Get-DnsServerResourceRecord -ZoneName "home.lan" | Select-Object HostName, RecordType, RecordData | Export-Csv -Path ".\rapport_DNS_Records.csv" -NoTypeInformation
+
+Différence d'exportation 

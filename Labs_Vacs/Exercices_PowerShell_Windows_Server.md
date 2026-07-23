@@ -23,7 +23,7 @@ Ces exercices sont classés par niveau de difficulté croissant pour chaque thè
 
 **Prérequis** : rôle DNS installé (`Install-WindowsFeature DNS`), module `DnsServer`.
 
-1. Créer une nouvelle zone principale intégrée à AD `entreprise.local` avec `Add-DnsServerPrimaryZone`.
+1. Créer une nouvelle zone principale intégrée à AD `home.lan` avec `Add-DnsServerPrimaryZone`.
 2. Ajouter des enregistrements A pour 3 serveurs fictifs (`Add-DnsServerResourceRecordA`).
 3. Ajouter un enregistrement CNAME (alias) pointant vers l'un des serveurs créés.
 4. Créer une zone de recherche inversée et vérifier la résolution avec `Resolve-DnsName`.
