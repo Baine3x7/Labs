@@ -1,0 +1,4 @@
+VMName,Gen,RAM,CPU,Switch,SizeMain,SizeSecond,OS
+SRV-MDT,2,8,2,WAN,127,100,IsoWinServ2025
+Client,2,8,2,WAN,127,100,IsoWin11
+ClientW11,2,8,2,WAN;Lan,127,100,SysprepWS2025
