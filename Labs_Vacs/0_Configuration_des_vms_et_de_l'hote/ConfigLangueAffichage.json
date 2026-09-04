@@ -1,15 +1,12 @@
 ﻿{
-    "UILanguageOverride":  "en-GB",
-    "SystemLocale":  "en-US",
+    "UILanguageOverride":  null,
+    "SystemLocale":  "fr-BE",
     "HomeLocationGeoId":  21,
     "LanguageList":  [
                          {
-                             "LanguageTag":  [
-                                                 "en-GB",
-                                                 "fr-FR"
-                                             ],
+                             "LanguageTag":  "en-US",
                              "InputMethodTips":  [
-                                                     "040C:0000040C"
+                                                     "080C:0000080C"
                                                  ]
                          }
                      ],

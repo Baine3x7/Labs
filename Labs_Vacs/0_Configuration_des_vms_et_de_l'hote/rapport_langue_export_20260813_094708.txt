@@ -1,0 +1,7 @@
+﻿2026-08-13 09:47:08 - === Debut du script de configuration de langue (mode : export) ===
+2026-08-13 09:47:08 - Configuration exportee vers : C:\Users\s_13950_admin\Documents\GitHub\Labs\Labs_Vacs\0_Configuration_des_vms_et_de_l'hote\ConfigLangueAffichage.json
+2026-08-13 09:47:08 -   UILanguageOverride : 
+2026-08-13 09:47:08 -   SystemLocale : fr-BE
+2026-08-13 09:47:08 -   TimeZoneId : Romance Standard Time
+2026-08-13 09:47:08 -   Langues : fr-BE
+2026-08-13 09:47:08 - === Fin du script - export termine avec succes ===

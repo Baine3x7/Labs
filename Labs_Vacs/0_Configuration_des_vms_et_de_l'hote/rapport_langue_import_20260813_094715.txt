@@ -1,0 +1,7 @@
+﻿2026-08-13 09:47:15 - === Debut du script de configuration de langue (mode : import) ===
+2026-08-13 09:47:15 - Configuration lue depuis : C:\Users\s_13950_admin\Documents\GitHub\Labs\Labs_Vacs\0_Configuration_des_vms_et_de_l'hote\ConfigLangueAffichage.json
+2026-08-13 09:47:15 - SystemLocale applique : fr-BE
+2026-08-13 09:47:15 - HomeLocationGeoId applique : 21
+2026-08-13 09:47:16 - LanguageList appliquee : fr-BE
+2026-08-13 09:47:16 - Fuseau horaire applique : Romance Standard Time
+2026-08-13 09:47:16 - === Fin du script - configuration importee avec succes ===
